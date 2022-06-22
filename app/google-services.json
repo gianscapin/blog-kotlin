@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1058342406993",
+    "project_id": "blogapp-kotlin",
+    "storage_bucket": "blogapp-kotlin.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1058342406993:android:a3db3f1657432e23f4e170",
+        "android_client_info": {
+          "package_name": "com.example.blogapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1058342406993-nto6m53djs980ooraso2nutuj3d76es7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaASQwKZpLKFSaT1BnarnZ8XHJQ1KJGsg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1058342406993-nto6m53djs980ooraso2nutuj3d76es7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
