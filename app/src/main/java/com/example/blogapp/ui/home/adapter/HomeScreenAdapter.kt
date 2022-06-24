@@ -33,6 +33,7 @@ class HomeScreenAdapter(private val postList: List<Post>): RecyclerView.Adapter<
             Glide.with(context).load(item.profilePicture).centerCrop().into(binding.profilePicture)
             binding.profileName.text = item.profileName
             binding.postTimestamp.text = "Hace 2 horas"
+            binding.postDescription.text = item.postDescription
         }
 
     }
