@@ -2,21 +2,53 @@ package com.example.blogapp.data.remote.home
 
 import com.example.blogapp.core.Result
 import com.example.blogapp.data.model.Post
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.*
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class HomeScreenDataSource {
 
-    suspend fun getLastestPosts(): Result<List<Post>> {
+    suspend fun getLastestPosts(): Flow<Result<List<Post>>> = callbackFlow {
         val postList = mutableListOf<Post>()
 
-        val querySnapshot = FirebaseFirestore.getInstance().collection("posts").get().await()
-        for(post in querySnapshot.documents){
-            post.toObject(Post::class.java)?.let { postFirebase ->
-                postList.add(postFirebase)
-            }
+        var postReference: Query? = null
+
+        try {
+            postReference = FirebaseFirestore.getInstance().collection("posts")
+                .orderBy("createdAt", Query.Direction.DESCENDING).get().await().query
+
+        } catch (e: Throwable) {
+            close(e)
         }
 
-        return Result.Success(postList)
+        val suscription = postReference?.addSnapshotListener { value, error ->
+            if (value == null) return@addSnapshotListener
+
+            try {
+                postList.clear()
+                for (post in value.documents) {
+                    post.toObject(Post::class.java)?.let { postFirebase ->
+                        postFirebase.apply {
+                            createdAt = post.getTimestamp(
+                                "createdAt",
+                                DocumentSnapshot.ServerTimestampBehavior.ESTIMATE
+                            )
+                                ?.toDate()
+                        }
+                        postList.add(postFirebase)
+                    }
+                }
+            } catch (e: Exception) {
+                close(e)
+            }
+
+            trySend(Result.Success(postList)).isSuccess
+        }
+
+        awaitClose { suscription?.remove() }
+
+
     }
 }
