@@ -2,22 +2,37 @@ package com.example.blogapp.ui.home.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.blogapp.R
 import com.example.blogapp.core.BaseViewHolder
 import com.example.blogapp.core.TimeAgo
+import com.example.blogapp.core.hide
+import com.example.blogapp.core.show
 import com.example.blogapp.data.model.Post
 import com.example.blogapp.databinding.PostItemViewBinding
 
-class HomeScreenAdapter(private val postList: List<Post>): RecyclerView.Adapter<BaseViewHolder<*>>() {
+class HomeScreenAdapter(
+    private val postList: List<Post>,
+    private val onPostClickListener: OnPostClickListener
+) : RecyclerView.Adapter<BaseViewHolder<*>>() {
+
+    private var postClickListener: OnPostClickListener? = null
+
+    init {
+        postClickListener = onPostClickListener
+    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<*> {
-        val itemBinding = PostItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val itemBinding =
+            PostItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return HomeScreenViewHolder(itemBinding, parent.context)
     }
 
     override fun onBindViewHolder(holder: BaseViewHolder<*>, position: Int) {
-        when(holder){
+        when (holder) {
             is HomeScreenViewHolder -> holder.bind(postList[position])
         }
     }
@@ -28,16 +43,81 @@ class HomeScreenAdapter(private val postList: List<Post>): RecyclerView.Adapter<
     private inner class HomeScreenViewHolder(
         val binding: PostItemViewBinding,
         val context: Context
-    ): BaseViewHolder<Post>(binding.root){
+    ) : BaseViewHolder<Post>(binding.root) {
         override fun bind(item: Post) {
-            Glide.with(context).load(item.postImage).centerCrop().into(binding.postImage)
-            Glide.with(context).load(item.profilePicture).centerCrop().into(binding.profilePicture)
-            binding.profileName.text = item.profileName
-            val time = item.createdAt?.time?.div(1000L)?.toInt()
+            setPostImage(item)
+            setProfileInfo(item)
+            addTimestamp(item)
+            setPostDescription(item)
+            paintLikeIcon(item)
+            showLikeCount(item)
+            setLikeClickAction(item)
+        }
+
+        private fun setLikeClickAction(post: Post) {
+            binding.likeBtn.setOnClickListener {
+                if(post.liked) post.apply {
+                    liked = false
+                } else post.apply {
+                    liked = true
+                }
+                paintLikeIcon(post)
+                postClickListener?.onLikeButtonClick(post, post.liked)
+            }
+        }
+
+
+        private fun setProfileInfo(post: Post) {
+            Glide.with(context).load(post.poster?.profilePicture).centerCrop()
+                .into(binding.profilePicture)
+            binding.profileName.text = post.poster?.username
+        }
+
+        private fun addTimestamp(post: Post) {
+            val time = post.createdAt?.time?.div(1000L)?.toInt()
             binding.postTimestamp.text = time?.let { TimeAgo.getTime(it) }
-            binding.postDescription.text = item.postDescription
+        }
+
+        private fun setPostImage(post: Post) {
+            Glide.with(context).load(post.postImage).centerCrop().into(binding.postImage)
+        }
+
+        private fun setPostDescription(post: Post) {
+            binding.postDescription.text = post.postDescription
+        }
+
+        private fun paintLikeIcon(post: Post) {
+            if (!post.liked) {
+                binding.likeBtn.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        context,
+                        R.drawable.ic_baseline_favorite_border_24
+                    )
+                )
+            } else {
+                binding.likeBtn.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        context,
+                        R.drawable.ic_baseline_favorite_24
+                    )
+                )
+                binding.likeBtn.setColorFilter(ContextCompat.getColor(context, R.color.red))
+            }
+        }
+
+        private fun showLikeCount(post: Post) {
+            if (post.likes > 0) {
+                binding.countLikes.visibility = View.VISIBLE
+                binding.countLikes.text = "${post.likes} likes"
+            } else {
+                binding.countLikes.visibility = View.GONE
+            }
         }
 
     }
 
+}
+
+interface OnPostClickListener {
+    fun onLikeButtonClick(post: Post, liked: Boolean)
 }

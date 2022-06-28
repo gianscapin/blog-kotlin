@@ -2,6 +2,7 @@ package com.example.blogapp.data.remote.camera
 
 import android.graphics.Bitmap
 import com.example.blogapp.data.model.Post
+import com.example.blogapp.data.model.Poster
 import com.example.blogapp.data.model.User
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -26,11 +27,10 @@ class CameraDataSource {
             it.displayName?.let { displayName ->
                 FirebaseFirestore.getInstance().collection("posts").add(
                     Post(
-                        profilePicture = it.photoUrl.toString(),
-                        profileName = displayName,
                         postImage = downloadUrl,
                         postDescription = description,
-                        uuid = user.uid
+                        poster = Poster(displayName, user.uid, it.photoUrl.toString()),
+                        likes = 0
                     )
                 )
             }
