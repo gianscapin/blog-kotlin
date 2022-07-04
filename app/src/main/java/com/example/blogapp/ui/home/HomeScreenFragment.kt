@@ -5,7 +5,10 @@ import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.blogapp.R
 import com.example.blogapp.core.Result
 import com.example.blogapp.core.hide
@@ -18,6 +21,8 @@ import com.example.blogapp.presentation.HomeScreenViewModel
 import com.example.blogapp.presentation.HomeScreenViewModelFactory
 import com.example.blogapp.ui.home.adapter.HomeScreenAdapter
 import com.example.blogapp.ui.home.adapter.OnPostClickListener
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class HomeScreenFragment : Fragment(R.layout.fragment_home_screen), OnPostClickListener {
 
@@ -33,6 +38,42 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen), OnPostClickL
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentHomeScreenBinding.bind(view)
+
+        var self = this
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Inicia la app queremos que la info se empiece a observar/colectar cuando se crea el fragment, cuando se detiene el fragment no recibe mas info, cuando volvimos a abrir la app vuelve a STARTED.
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED){
+                viewModel.latestPosts.collect{ result ->
+                    when (result) {
+                        is Result.Loading -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                        }
+
+                        is Result.Success -> {
+                            binding.progressBar.visibility = View.GONE
+                            if(result.data.isEmpty()){
+                                binding.postsEmpty.show()
+                                return@collect
+                            }else{
+                                binding.postsEmpty.hide()
+                            }
+                            binding.rvHome.adapter = HomeScreenAdapter(result.data, self)
+                        }
+
+                        is Result.Failure -> {
+                            binding.progressBar.visibility = View.GONE
+                            Toast.makeText(
+                                requireContext(),
+                                "Ocurrió un error: ${result.exception}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            }
+        }
+        /*
         viewModel.fetchLatestPosts().observe(viewLifecycleOwner, Observer { result ->
             when (result) {
                 is Result.Loading -> {
@@ -61,6 +102,7 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen), OnPostClickL
             }
 
         })
+        */
 
     }
 
