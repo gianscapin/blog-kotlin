@@ -26,8 +26,9 @@ After that you will see the home screen.
 
 ### Add post
 
-You have to go to photo screen, to do that, you must click in the bottom navigation to a photo icon.
+You have to go to photo screen, to do that, you must click in the bottom navigation to a photo icon. 
 You will take a photo and add a description.
+
 <img width="230" alt="image" src="https://user-images.githubusercontent.com/75456915/179861620-36760529-dce8-42ff-9677-2cfadf57397c.png">
 
 <img width="229" alt="image" src="https://user-images.githubusercontent.com/75456915/179861631-55e53956-32f2-41c3-9350-b70ba7a6b968.png">
